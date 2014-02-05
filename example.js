@@ -72,8 +72,9 @@ var bus = new BusPrototype({connection: connectionDetails}, function(){
 
   var appKey   = 'exampleApp';
   var priority = 'default';
+  // appKey is always lower-cased by resque-bus
   // These subscriptions will put work to do in a "exampleApp_default" queue in resque: "(app_key)_(priority)"
-  var bus_queue = 'exampleApp_default';
+  var bus_queue = 'exampleapp_default';
 
   ///////////////
   // SUBSCRIBE //
