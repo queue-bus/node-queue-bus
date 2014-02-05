@@ -2,8 +2,10 @@
 // REQUIRE THE PACKAGE //
 /////////////////////////
 
-var NR = require("node-resque");
-var RB = require("./index.js");
+var BusPrototype       = require("./index.js").bus;
+var DriverPrototype    = require("./index.js").driver;
+var SchedulerPrototype = require("node-resque").scheduler;
+var WorkerPrototype    = require("node-resque").worker;
 
 ///////////////////////////
 // SET UP THE CONNECTION //
@@ -21,13 +23,14 @@ var connectionDetails = {
 //////////////////////////////
 // DEFINE YOUR WORKER TASKS //
 //////////////////////////////
+
 var jobsToComplete = 2;
 
 var jobs = {
   "remoteEventAdd": {
     perform: function(payload, callback){
       var answer = payload.a + payload.b; 
-      callback(answer);
+      callback(null, answer);
 
       jobsToComplete--;
       shutdown();
@@ -35,8 +38,8 @@ var jobs = {
   },
   "remoteEventSubtract": {
     perform: function(payload, callback){
-      var answer = payload.a + payload.b; 
-      callback(answer);
+      var answer = payload.a - payload.b; 
+      callback(null, answer);
 
       jobsToComplete--;
       shutdown();
@@ -44,79 +47,94 @@ var jobs = {
   },
 };
 
-///////////////////////
-// START A SCHEDULER //
-///////////////////////
+/////////////////////
+// START SCHEDULER //
+/////////////////////
 
-var scheduler = new NR.scheduler({connection: connectionDetails}, function(){
+var scheduler = new SchedulerPrototype({connection: connectionDetails}, function(){
   scheduler.start();
 });
 
+//////////////////
+// START DRIVER //
+//////////////////
 
-///////////////
-// SUBSCRIBE //
-///////////////
+var driver = new DriverPrototype({connection: connectionDetails}, function(){
+  driver.workerCleanup(); // optional: cleanup any previous improperly shutdown workers
+  driver.start();
+});
 
-var worker;
-var queues;
-var bus = new RB.bus({connection: connectionDetails}, function(){
+/////////////
+// CONNECT //
+/////////////
 
-  bus.subscribe('example', 'remoteJobs',      'remoteEventAdd', { bus_event_type : "^.*add.*" }      , function(err, q){
-  bus.subscribe('example', 'remoteJobs', 'remoteEventSubtract', { bus_event_type : "^.*subtract.*" } , function(err, q){
-    var combined_queue_name = q;
-    console.log("subscribed to " + combined_queue_name);
+var bus = new BusPrototype({connection: connectionDetails}, function(){
 
-    ///////////////////////////////
-    // APPEND THE DRIVER TO JOBS //
-    ///////////////////////////////
+  var appKey   = 'exampleApp';
+  var priority = 'default';
+  // These subscriptions will put work to do in a "exampleApp_default" queue in resque: "(app_key)_(priority)"
+  var bus_queue = 'exampleApp_default';
 
-    jobs[bus.options.busDriverClassKey] = bus.driverJob();
+  ///////////////
+  // SUBSCRIBE //
+  ///////////////
 
-    ////////////////////
-    // START A WORKER //
-    ////////////////////
+  bus.subscribe(appKey, priority,      'remoteEventAdd', { bus_event_type : "^.*add.*" }     )
+  bus.subscribe(appKey, priority, 'remoteEventSubtract', { bus_event_type : "^.*subtract.*" })
 
-    worker = new NR.worker({connection: connectionDetails, queues: [combined_queue_name, bus.options.incommigQueue]}, jobs, function(){
-      worker.workerCleanup(); // optional: cleanup any previous improperly shutdown workers
-      worker.start();
-    });
+  ////////////////////
+  // START A WORKER //
+  ////////////////////
 
-    /////////////////////////
-    // REGESTER FOR EVENTS //
-    /////////////////////////
-
-    worker.on('start',           function(){ console.log("worker started"); })
-    worker.on('end',             function(){ console.log("worker ended"); })
-    worker.on('cleaning_worker', function(worker, pid){ console.log("cleaning old worker " + worker); })
-    worker.on('poll',            function(queue){ console.log("worker polling " + queue); })
-    worker.on('job',             function(queue, job){ console.log("working job " + queue + " " + JSON.stringify(job)); })
-    worker.on('reEnqueue',       function(queue, job, plugin){ console.log("reEnqueue job (" + plugin + ") " + queue + " " + JSON.stringify(job)); })
-    worker.on('success',         function(queue, job, result){ console.log("job success " + queue + " " + JSON.stringify(job) + " >> " + result); })
-    worker.on('error',           function(queue, job, error){ console.log("job failed " + queue + " " + JSON.stringify(job) + " >> " + error); })
-    worker.on('pause',           function(){ console.log("worker paused"); })
-
-    scheduler.on('start',             function(){ console.log("scheduler started"); })
-    scheduler.on('end',               function(){ console.log("scheduler ended"); })
-    scheduler.on('poll',              function(){ console.log("scheduler polling"); })
-    scheduler.on('working_timestamp', function(timestamp){ console.log("scheduler working timestamp " + timestamp); })
-    scheduler.on('transferred_job',   function(timestamp, job){ console.log("scheduler enquing job " + timestamp + " >> " + JSON.stringify(job)); })
-
-    ///////////////////
-    // PUBLISH EVENT //
-    ///////////////////
-
-    bus.publish({
-      a: 1,
-      b: 2,
-      bus_event_type: 'add',
-    });
-    bus.publishAt(1000, {
-      a: 2,
-      b: 1,
-      bus_event_type: 'subtract',
-    });
-
+  worker = new WorkerPrototype({connection: connectionDetails, queues: [bus_queue]}, jobs, function(){
+    worker.workerCleanup(); // optional: cleanup any previous improperly shutdown workers
+    worker.start();
   });
+
+  /////////////////////////
+  // REGESTER FOR EVENTS //
+  /////////////////////////
+
+  driver.on('start',           function(){ console.log("driver started"); })
+  driver.on('end',             function(){ console.log("driver ended"); })
+  driver.on('cleaning_worker', function(worker, pid){ console.log("cleaning old driver " + worker); })
+  driver.on('poll',            function(queue){ console.log("driver polling " + queue); })
+  driver.on('job',             function(queue, job){ console.log("working job " + queue + " " + JSON.stringify(job)); })
+  driver.on('reEnqueue',       function(queue, job, plugin){ console.log("reEnqueue job (" + plugin + ") " + queue + " " + JSON.stringify(job)); })
+  driver.on('success',         function(queue, job, result){ console.log("job success " + queue + " " + JSON.stringify(job) + " >> " + result); })
+  driver.on('error',           function(queue, job, error){ console.log("job failed " + queue + " " + JSON.stringify(job) + " >> " + error); })
+  driver.on('pause',           function(){ console.log("driver paused"); })
+
+  worker.on('start',           function(){ console.log("worker started"); })
+  worker.on('end',             function(){ console.log("worker ended"); })
+  worker.on('cleaning_worker', function(worker, pid){ console.log("cleaning old worker " + worker); })
+  worker.on('poll',            function(queue){ console.log("worker polling " + queue); })
+  worker.on('job',             function(queue, job){ console.log("working job " + queue + " " + JSON.stringify(job)); })
+  worker.on('reEnqueue',       function(queue, job, plugin){ console.log("reEnqueue job (" + plugin + ") " + queue + " " + JSON.stringify(job)); })
+  worker.on('success',         function(queue, job, result){ console.log("job success " + queue + " " + JSON.stringify(job) + " >> " + result); })
+  worker.on('error',           function(queue, job, error){ console.log("job failed " + queue + " " + JSON.stringify(job) + " >> " + error); })
+  worker.on('pause',           function(){ console.log("worker paused"); })
+
+  scheduler.on('start',             function(){ console.log("scheduler started"); })
+  scheduler.on('end',               function(){ console.log("scheduler ended"); })
+  scheduler.on('poll',              function(){ console.log("scheduler polling"); })
+  scheduler.on('working_timestamp', function(timestamp){ console.log("scheduler working timestamp " + timestamp); })
+  scheduler.on('transferred_job',   function(timestamp, job){ console.log("scheduler enquing job " + timestamp + " >> " + JSON.stringify(job)); })
+
+  ///////////////////
+  // PUBLISH EVENT //
+  ///////////////////
+
+  bus.publish({
+    a: 5,
+    b: 10,
+    bus_event_type: 'add',
+  });
+  
+  bus.publishAt(1000, {
+    a: 10,
+    b: 5,
+    bus_event_type: 'subtract',
   });
 });
 
@@ -125,7 +143,9 @@ var shutdown = function(){
     setTimeout(function(){
       scheduler.end(function(){
         worker.end(function(){
-          process.exit();
+          driver.end(function(){
+            process.exit();
+          });
         });
       });
     }, 500);
