@@ -126,16 +126,14 @@ var bus = new BusPrototype({connection: connectionDetails}, function(){
   // PUBLISH EVENT //
   ///////////////////
 
-  bus.publish({
+  bus.publish('add', {
     a: 5,
     b: 10,
-    bus_event_type: 'add',
   });
   
-  bus.publishAt(1000, {
+  bus.publishAt(1000, 'subtract', {
     a: 10,
     b: 5,
-    bus_event_type: 'subtract',
   });
 });
 

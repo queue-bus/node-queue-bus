@@ -15,6 +15,9 @@
   },
   "dependencies": {
     "redis":       "0.10.x",
+    "node-uuid":   "1.x.x",
+    "i18n":        "latest",
+    "time":        "latest",
     "node-resque": "latest"
   },
   "devDependencies": {
