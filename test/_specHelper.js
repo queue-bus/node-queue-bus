@@ -1,11 +1,10 @@
 var redis = require('redis');
 var namespace = "resque_test";
-var queue = "test_queue";
 
 exports.specHelper = {
-  NR: require(__dirname + "/../index.js"),
+  BusPrototype: require(__dirname + "/../index.js").bus,
+  DriverPrototype: require(__dirname + "/../index.js").driver,
   namespace: namespace,
-  queue: queue,
   timeout: 500,
   connectionDetails: {
     host:      "127.0.0.1",
@@ -40,30 +39,6 @@ exports.specHelper = {
           callback();
         });
       }
-    });
-  },
-  startAll: function(jobs, callback){
-    var self = this;
-    self.worker = new self.NR.worker({connection: self.connectionDetails, queues: self.queue, timeout: self.timeout}, jobs, function(){
-      self.scheduler = new self.NR.scheduler({connection: self.connectionDetails, timeout: self.timeout}, function(){
-        self.queue = new self.NR.queue({connection: self.connectionDetails}, function(){
-          callback();
-        });
-      });
-    });
-  },
-  endAll: function(callback){
-    var self = this;
-    self.worker.end(function(){
-      self.scheduler.end(function(){
-        callback()
-      })
-    });
-  },
-  popFromQueue: function(callback){
-    var self = this;
-    self.redis.lpop(self.namespace + ":queue:" + self.queue, function(err, obj){
-      callback(err, obj)
     });
   }
 }
