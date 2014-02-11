@@ -85,7 +85,7 @@ describe('publish', function(){
 
   it('delayed publish jobs will be moved to incomming eventually', function(done){
     this.timeout(15000)
-    var scheduler = new SchedulerPrototype({connection: specHelper.connectionDetails}, function(){
+    var scheduler = new SchedulerPrototype({connection: specHelper.connectionDetails, timeout: specHelper.timeout}, function(){
       scheduler.start();
       var t = (new Date().getTime()) + 1000;
       var timestamp = Math.round(t/1000);
@@ -101,7 +101,7 @@ describe('publish', function(){
               done();
             })
           })
-        }, 6000)
+        }, (specHelper.timeout * 3))
       })
     })
   })
