@@ -24,8 +24,6 @@ var connectionDetails = {
 // DEFINE YOUR WORKER TASKS //
 //////////////////////////////
 
-var jobsToComplete = 2;
-
 var jobs = {
   "remoteEventAdd": {
     perform: function(payload, callback){
@@ -136,6 +134,8 @@ var bus = new BusPrototype({connection: connectionDetails}, function(){
     b: 5,
   });
 });
+
+var jobsToComplete = 2;
 
 var shutdown = function(){
   if(jobsToComplete === 0){
