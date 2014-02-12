@@ -27,7 +27,7 @@ var subscribe_c = function(callback){
 }
 
 var subscribe_d = function(callback){
-  bus.subscribe('app_d', priority, 'job_d', { bus_event_type : "^.*matcher.*$" }, function(){
+  bus.subscribe('app_d', priority, 'job_d', { bus_event_type : /^.*matcher.*$/g }, function(){
     callback();
   });
 }
@@ -167,7 +167,6 @@ describe('driver', function(){
       });
     });
   })
-  it('subscriptions: regexp (ruby)')
 
   it('will ignore events that do not match any subscriptions', function(done){
     bus.subscribe('app_a', priority, 'job_a', { bus_event_type : "event_a" }, function(){
