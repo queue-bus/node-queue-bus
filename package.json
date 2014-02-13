@@ -2,7 +2,7 @@
   "author":      "Evan Tahler <evantahler@gmail.com>",
   "name":        "node-resquebus",
   "description": "an implementation of resquebus in node",
-  "version":     "0.0.2",
+  "version":     "0.1.0",
   "homepage":    "http://github.com/taskrabbit/node-resquebus",
   "repository": {
     "type": "git",

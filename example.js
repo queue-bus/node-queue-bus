@@ -78,8 +78,8 @@ var bus = new BusPrototype({connection: connectionDetails}, function(){
   // SUBSCRIBE //
   ///////////////
 
-  bus.subscribe(appKey, priority,      'remoteEventAdd', { bus_event_type : "^.*add.*" }     )
-  bus.subscribe(appKey, priority, 'remoteEventSubtract', { bus_event_type : "^.*subtract.*" })
+  bus.subscribe(appKey, priority,      'remoteEventAdd', { bus_event_type : /^.*add.*/ }     )
+  bus.subscribe(appKey, priority, 'remoteEventSubtract', { bus_event_type : /^.*subtract.*/ })
 
   ////////////////////
   // START A WORKER //
