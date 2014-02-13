@@ -1,5 +1,7 @@
 # node-resquebus
 
+[![Nodei stats](https://nodei.co/npm/node-resquebus.png?downloads=true)](https://npmjs.org/package/node-resquebus)
+
 [![Build Status](https://travis-ci.org/taskrabbit/node-resquebus.png?branch=master)](https://travis-ci.org/taskrabbit/node-resquebus)
 
 ## Acknowledgments
