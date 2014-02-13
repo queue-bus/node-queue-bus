@@ -62,10 +62,19 @@ bus.publishAt((new Date.getTime() + 1000), 'multiply', {
   b: 5,
 });
 ```
+### Methods:
+
+- `bus.subscriptions(callback(error, subsciptions, count))`
+- `bus.subscribe(callback(appKey, priority, job, matcher, callback(error, queue_name)))`
+- `bus.unsubscribe(callback(appKey, priority, job, callback))`
+- `bus.unsubscribeAdd(callback(appKey, callback))`
+- `bus.publish(bus_event_type, args, callback(error, toRun))`
+- `bus.publishAt(timestamp, bus_event_type, args, callback(error, toRun))`
+- `bus.publishIn(delay, bus_event_type, args, callback(error, toRun))`
 
 Keep in mind that if you use `publishAt` or `publishIn`, you will need to have a `Scheduler` running in your ecosystem.
 
-### Matching and Sepcial Keys
+### Matching and Special Keys
 
 You can use a single string `{ bus_event_type: 'add' }` or regex `{ bus_event_type : /^.*add.*/ }` to match events in your subscription.  There are also special keys you can use:
 
