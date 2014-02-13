@@ -57,7 +57,7 @@ var scheduler = new SchedulerPrototype({connection: connectionDetails}, function
 // START DRIVER //
 //////////////////
 
-var driver = new DriverPrototype({connection: connectionDetails}, function(){
+var driver = new DriverPrototype({connection: connectionDetails}, jobs, function(){
   driver.workerCleanup(); // optional: cleanup any previous improperly shutdown workers
   driver.start();
 });
@@ -66,7 +66,7 @@ var driver = new DriverPrototype({connection: connectionDetails}, function(){
 // CONNECT //
 /////////////
 
-var bus = new BusPrototype({connection: connectionDetails}, function(){
+var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
 
   var appKey   = 'exampleApp';
   var priority = 'default';
