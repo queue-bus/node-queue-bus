@@ -25,7 +25,7 @@ There are a few roles which are required to use the resquebus:
 - Scheduler
 - Worker
 
-The publishing application sends an event (`bus.publish()`).  This event is entered into an `incomming` resue queue.  The Driver then inspects `subscriptions` and sends the event over to queues for application which have registered interest in the event.  Then, finally, workers for those events consume the jobs in a normal resque way.  You can also delay a publication `bus.publishAt()`, and in that case, a Scheduler is required to coordinate.  To learn more about the worker, [visit the node-resque](https://github.com/taskrabbit/node-resque) project.
+The publishing application sends an event (`bus.publish()`).  This event is entered into an `incomming` resque queue.  The Driver then inspects `subscriptions` and sends the event over to queues for application which have registered interest in the event.  Then, finally, workers for those events consume the jobs in a normal resque way.  You can also delay a publication `bus.publishAt()`, and in that case, a Scheduler is required to coordinate.  To learn more about the worker, [visit the node-resque](https://github.com/taskrabbit/node-resque) project.
 
 ## Subscribing and Publishing.
 
