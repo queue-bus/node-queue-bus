@@ -162,6 +162,7 @@ var WorkerPrototype    = require("node-resque").worker;
 ///////////////////////////
 
 var connectionDetails = {
+  package:   "redis",
   host:      "127.0.0.1",
   password:  "",
   port:      6379,

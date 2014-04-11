@@ -7,6 +7,7 @@ exports.specHelper = {
   namespace: namespace,
   timeout: 500,
   connectionDetails: {
+    package:  'redis',
     host:      "127.0.0.1",
     password:  "",
     port:      6379,
