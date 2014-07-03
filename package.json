@@ -2,7 +2,7 @@
   "author":      "Evan Tahler <evantahler@gmail.com>",
   "name":        "node-resquebus",
   "description": "an implementation of resquebus in node",
-  "version":     "0.1.0",
+  "version":     "0.1.1",
   "homepage":    "http://github.com/taskrabbit/node-resquebus",
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
   "dependencies": {
     "redis":       "0.10.x",
     "node-uuid":   "1.x.x",
-    "node-resque": "latest"
+    "node-resque": "0.8.1"
   },
   "devDependencies": {
     "mocha": "1.9.x",
