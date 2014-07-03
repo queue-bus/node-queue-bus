@@ -11,7 +11,7 @@
   "main": "index.js",
   "keywords": ["delayed", "queue", "resque", "redis", "bus", "pub", "sub", "distrobution"],
   "engines": {
-    "node": ">=0.8.0"
+    "node": ">=0.10.0"
   },
   "dependencies": {
     "redis":       "0.10.x",
