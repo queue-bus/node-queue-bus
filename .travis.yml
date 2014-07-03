@@ -3,8 +3,8 @@ notifications:
     - evantahler@gmail.com
 language: node_js
 node_js:
-  - 0.10.0 
-  - 0.11.0 
+  - "0.10"
+  - "0.11"
 branches:
   only:
     - master
