@@ -152,8 +152,8 @@ When an event is passed though the entire bus, metadata is added by both the pub
 // REQUIRE THE PACKAGE //
 /////////////////////////
 
-var BusPrototype       = require("node-resquebus").bus;
-var DriverPrototype    = require("node-resquebus").driver;
+var BusPrototype       = require(__dirname + '/../index.js').bus;
+var DriverPrototype    = require(__dirname + '/../index.js').driver;
 var SchedulerPrototype = require("node-resque").scheduler;
 var WorkerPrototype    = require("node-resque").worker;
 
@@ -169,7 +169,7 @@ var connectionDetails = {
   database:  0,
   // namespace: "resque",
   // looping: true
-}
+};
 
 //////////////////////////////
 // DEFINE YOUR WORKER TASKS //
@@ -229,8 +229,8 @@ var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
   // SUBSCRIBE //
   ///////////////
 
-  bus.subscribe(appKey, priority,      'remoteEventAdd', { bus_event_type : /^.*add.*/ }     )
-  bus.subscribe(appKey, priority, 'remoteEventSubtract', { bus_event_type : /^.*subtract.*/ })
+  bus.subscribe(appKey, priority,      'remoteEventAdd', { bus_event_type : /^.*add.*/ }     );
+  bus.subscribe(appKey, priority, 'remoteEventSubtract', { bus_event_type : /^.*subtract.*/ });
 
   ////////////////////
   // START A WORKER //
@@ -245,31 +245,33 @@ var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
   // REGESTER FOR EVENTS //
   /////////////////////////
 
-  driver.on('start',           function(){ console.log("driver started"); })
-  driver.on('end',             function(){ console.log("driver ended"); })
-  driver.on('cleaning_worker', function(worker, pid){ console.log("cleaning old driver " + worker); })
-  driver.on('poll',            function(queue){ console.log("driver polling " + queue); })
-  driver.on('job',             function(queue, job){ console.log("working job " + queue + " " + JSON.stringify(job)); })
-  driver.on('reEnqueue',       function(queue, job, plugin){ console.log("reEnqueue job (" + plugin + ") " + queue + " " + JSON.stringify(job)); })
-  driver.on('success',         function(queue, job, result){ console.log("job success " + queue + " " + JSON.stringify(job) + " >> " + result); })
-  driver.on('error',           function(queue, job, error){ console.log("job failed " + queue + " " + JSON.stringify(job) + " >> " + error); })
-  driver.on('pause',           function(){ console.log("driver paused"); })
+  driver.on('start',           function(){ console.log("worker started"); });
+  driver.on('end',             function(){ console.log("worker ended"); });
+  driver.on('cleaning_worker', function(worker, pid){ console.log("cleaning old worker " + worker); });
+  driver.on('poll',            function(queue){ console.log("worker polling " + queue); });
+  driver.on('job',             function(queue, job){ console.log("working job " + queue + " " + JSON.stringify(job)); });
+  driver.on('reEnqueue',       function(queue, job, plugin){ console.log("reEnqueue job (" + plugin + ") " + queue + " " + JSON.stringify(job)); });
+  driver.on('success',         function(queue, job, result){ console.log("job success " + queue + " " + JSON.stringify(job) + " >> " + result); });
+  driver.on('failure',         function(queue, job, failure){ console.log("job failure " + queue + " " + JSON.stringify(job) + " >> " + failure); });
+  driver.on('error',           function(queue, job, error){ console.log("error " + queue + " " + JSON.stringify(job) + " >> " + error); });
+  driver.on('pause',           function(){ console.log("worker paused"); });
 
-  worker.on('start',           function(){ console.log("worker started"); })
-  worker.on('end',             function(){ console.log("worker ended"); })
-  worker.on('cleaning_worker', function(worker, pid){ console.log("cleaning old worker " + worker); })
-  worker.on('poll',            function(queue){ console.log("worker polling " + queue); })
-  worker.on('job',             function(queue, job){ console.log("working job " + queue + " " + JSON.stringify(job)); })
-  worker.on('reEnqueue',       function(queue, job, plugin){ console.log("reEnqueue job (" + plugin + ") " + queue + " " + JSON.stringify(job)); })
-  worker.on('success',         function(queue, job, result){ console.log("job success " + queue + " " + JSON.stringify(job) + " >> " + result); })
-  worker.on('error',           function(queue, job, error){ console.log("job failed " + queue + " " + JSON.stringify(job) + " >> " + error); })
-  worker.on('pause',           function(){ console.log("worker paused"); })
+  worker.on('start',           function(){ console.log("worker started"); });
+  worker.on('end',             function(){ console.log("worker ended"); });
+  worker.on('cleaning_worker', function(worker, pid){ console.log("cleaning old worker " + worker); });
+  worker.on('poll',            function(queue){ console.log("worker polling " + queue); });
+  worker.on('job',             function(queue, job){ console.log("working job " + queue + " " + JSON.stringify(job)); });
+  worker.on('reEnqueue',       function(queue, job, plugin){ console.log("reEnqueue job (" + plugin + ") " + queue + " " + JSON.stringify(job)); });
+  worker.on('success',         function(queue, job, result){ console.log("job success " + queue + " " + JSON.stringify(job) + " >> " + result); });
+  worker.on('failure',         function(queue, job, failure){ console.log("job failure " + queue + " " + JSON.stringify(job) + " >> " + failure); });
+  worker.on('error',           function(queue, job, error){ console.log("error " + queue + " " + JSON.stringify(job) + " >> " + error); });
+  worker.on('pause',           function(){ console.log("worker paused"); });
 
-  scheduler.on('start',             function(){ console.log("scheduler started"); })
-  scheduler.on('end',               function(){ console.log("scheduler ended"); })
-  scheduler.on('poll',              function(){ console.log("scheduler polling"); })
-  scheduler.on('working_timestamp', function(timestamp){ console.log("scheduler working timestamp " + timestamp); })
-  scheduler.on('transferred_job',   function(timestamp, job){ console.log("scheduler enquing job " + timestamp + " >> " + JSON.stringify(job)); })
+  scheduler.on('start',             function(){ console.log("scheduler started"); });
+  scheduler.on('end',               function(){ console.log("scheduler ended"); });
+  scheduler.on('poll',              function(){ console.log("scheduler polling"); });
+  scheduler.on('working_timestamp', function(timestamp){ console.log("scheduler working timestamp " + timestamp); });
+  scheduler.on('transferred_job',   function(timestamp, job){ console.log("scheduler enquing job " + timestamp + " >> " + JSON.stringify(job)); });
 
   ///////////////////
   // PUBLISH EVENT //
@@ -287,7 +289,6 @@ var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
 });
 
 var jobsToComplete = 2;
-
 var shutdown = function(){
   if(jobsToComplete === 0){
     setTimeout(function(){
@@ -300,5 +301,5 @@ var shutdown = function(){
       });
     }, 500);
   }
-}
+};
 ```
