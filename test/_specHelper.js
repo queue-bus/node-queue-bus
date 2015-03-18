@@ -18,7 +18,7 @@ exports.specHelper = {
   connect: function(callback){
     var self = this;
     self.redis = redis.createClient(self.connectionDetails.port, self.connectionDetails.host, self.connectionDetails.options);
-    if(self.connectionDetails.password != null && self.connectionDetails.password != ""){
+    if(self.connectionDetails.password && self.connectionDetails.password !== ""){
       self.redis.auth(self.connectionDetails.password, function(err){
         self.redis.select(self.connectionDetails.database, function(err){
           callback(err);

@@ -25,8 +25,8 @@ describe('publish', function(){
       should.not.exist(err);
       toRun.should.equal(true);
       done();
-    })
-  })
+    });
+  });
 
   it('will append metadata to published events', function(done){
     var now = Math.floor(new Date().getTime() / 1000)
@@ -43,9 +43,9 @@ describe('publish', function(){
         should.exist(elem.args[0].bus_id);
         elem.args[0].bus_app_hostname.should.equal(os.hostname());
         done();
-      })
-    })
-  })
+      });
+    });
+  });
 
   it('can publishAt', function(done){
     var t = (new Date().getTime()) + 1000;
@@ -61,9 +61,9 @@ describe('publish', function(){
           elem.queue.should.equal("resquebus_incoming");
           done();
         });
-      })
-    })
-  })
+      });
+    });
+  });
 
   it('can publishIn', function(done){
     var t = 1000;
@@ -79,9 +79,9 @@ describe('publish', function(){
           elem.queue.should.equal("resquebus_incoming");
           done();
         });
-      })
-    })
-  })
+      });
+    });
+  });
 
   it('delayed publish jobs will be moved to incomming eventually', function(done){
     this.timeout(15000)
@@ -99,11 +99,11 @@ describe('publish', function(){
             elem.args[0].thing.should.equal('stuff');
             scheduler.end(function(){
               done();
-            })
-          })
-        }, (specHelper.timeout * 3))
-      })
-    })
-  })
+            });
+          });
+        }, (specHelper.timeout * 3));
+      });
+    });
+  });
 
 });

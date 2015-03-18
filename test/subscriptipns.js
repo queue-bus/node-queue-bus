@@ -23,20 +23,20 @@ describe('subscriptions', function(){
       should.not.exist(err);
       combined_queue_name.should.equal("testapp_default");
       done();
-    })
-  })
+    });
+  });
 
   it('can list subscriptions', function(done){
     bus.subscribe(appKey, priority, job, { bus_event_type : "key" }, function(err, combined_queue_name){
       bus.subscriptions(function(err, subscriptions){
-        var collection = subscriptions.testapp.testapp_default_testEvent
+        var collection = subscriptions.testapp.testapp_default_testEvent;
         collection.queue_name.should.equal('testapp_default');
         collection.key.should.equal('testapp_default_testEvent');
         collection.class.should.equal(job);
         collection.matcher.bus_event_type.should.equal("key");
-        done()
+        done();
       });
-    })
+    });
   });
 
   it('can unsubscribe one subscription', function(done){
@@ -47,10 +47,10 @@ describe('subscriptions', function(){
             should.not.exist(subscriptions[appKey][job]);
             should.exist(subscriptions[appKey]['testapp_default_otherJob']);
             done();
-          })
-        })
-      })
-    })
+          });
+        });
+      });
+    });
   });
 
   it('can unsubscribe all subscriptions', function(done){
@@ -60,10 +60,10 @@ describe('subscriptions', function(){
           bus.subscriptions(function(err, subscriptions){
             should.not.exist(subscriptions.testapp);
             done();
-          })
-        })
-      })
-    })
+          });
+        });
+      });
+    });
   });
 
 });
