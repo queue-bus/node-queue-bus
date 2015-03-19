@@ -38,23 +38,6 @@ var jobs = {
   },
 };
 
-/////////////////////
-// START SCHEDULER //
-/////////////////////
-
-var scheduler = new SchedulerPrototype({connection: connectionDetails}, function(){
-  scheduler.start();
-});
-
-//////////////////
-// START DRIVER //
-//////////////////
-
-var driver = new DriverPrototype({connection: connectionDetails}, jobs, function(){
-  driver.workerCleanup(); // optional: cleanup any previous improperly shutdown workers
-  driver.start();
-});
-
 /////////////
 // CONNECT //
 /////////////
@@ -72,6 +55,23 @@ var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
 
   bus.subscribe(appKey, 'default',    'newUserJob', { bus_event_type : /^user_created/   });
   bus.subscribe(appKey, 'default', 'deleteUserJob', { bus_event_type : /^user_destroyed/ });
+
+  /////////////////////
+  // START SCHEDULER //
+  /////////////////////
+
+  var scheduler = new SchedulerPrototype({connection: connectionDetails}, function(){
+    scheduler.start();
+  });
+
+  //////////////////
+  // START DRIVER //
+  //////////////////
+
+  var driver = new DriverPrototype({connection: connectionDetails}, jobs, function(){
+    driver.workerCleanup(); // optional: cleanup any previous improperly shutdown workers
+    driver.start();
+  });
 
   ////////////////////
   // START A WORKER //
