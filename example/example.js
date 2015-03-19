@@ -17,8 +17,6 @@ var connectionDetails = {
   password:  "",
   port:      6379,
   database:  0,
-  // namespace: "resque",
-  // looping: true
 };
 
 //////////////////////////////
@@ -26,22 +24,16 @@ var connectionDetails = {
 //////////////////////////////
 
 var jobs = {
-  "remoteEventAdd": {
+  "newUserJob": {
     perform: function(payload, callback){
-      var answer = payload.a + payload.b; 
-      callback(null, answer);
-
-      jobsToComplete--;
-      shutdown();
+      console.log("*** HELLO USER " + payload.email + " ***");
+      callback();
     },
   },
-  "remoteEventSubtract": {
+  "deleteUserJob": {
     perform: function(payload, callback){
-      var answer = payload.a - payload.b; 
-      callback(null, answer);
-
-      jobsToComplete--;
-      shutdown();
+      console.log("*** GOODBYE USER " + payload.email + " ***");
+      callback();
     },
   },
 };
@@ -69,18 +61,17 @@ var driver = new DriverPrototype({connection: connectionDetails}, jobs, function
 
 var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
 
-  var appKey   = 'exampleApp';
-  var priority = 'default';
+  var appKey   = 'myApp';
   // appKey is always lower-cased by resque-bus
   // These subscriptions will put work to do in a "exampleApp_default" queue in resque: "(app_key)_(priority)"
-  var bus_queue = 'exampleapp_default';
+  var bus_queue = 'myapp_default';
 
   ///////////////
   // SUBSCRIBE //
   ///////////////
 
-  bus.subscribe(appKey, priority,      'remoteEventAdd', { bus_event_type : /^.*add.*/ }     );
-  bus.subscribe(appKey, priority, 'remoteEventSubtract', { bus_event_type : /^.*subtract.*/ });
+  bus.subscribe(appKey, 'default',    'newUserJob', { bus_event_type : /^user_created/   });
+  bus.subscribe(appKey, 'default', 'deleteUserJob', { bus_event_type : /^user_destroyed/ });
 
   ////////////////////
   // START A WORKER //
@@ -95,10 +86,10 @@ var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
   // REGESTER FOR EVENTS //
   /////////////////////////
 
-  driver.on('start',           function(){ console.log("worker started"); });
-  driver.on('end',             function(){ console.log("worker ended"); });
+  driver.on('start',           function(){ console.log("driver started"); });
+  driver.on('end',             function(){ console.log("driver ended"); });
   driver.on('cleaning_worker', function(worker, pid){ console.log("cleaning old worker " + worker); });
-  driver.on('poll',            function(queue){ console.log("worker polling " + queue); });
+  driver.on('poll',            function(queue){ console.log("driver polling " + queue); });
   driver.on('job',             function(queue, job){ console.log("working job " + queue + " " + JSON.stringify(job)); });
   driver.on('reEnqueue',       function(queue, job, plugin){ console.log("reEnqueue job (" + plugin + ") " + queue + " " + JSON.stringify(job)); });
   driver.on('success',         function(queue, job, result){ console.log("job success " + queue + " " + JSON.stringify(job) + " >> " + result); });
@@ -127,28 +118,16 @@ var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
   // PUBLISH EVENT //
   ///////////////////
 
-  bus.publish('add', {
-    a: 5,
-    b: 10,
+  bus.publish('user_created', {
+    email: 'evan@site.com'
   });
   
-  bus.publishAt(1000, 'subtract', {
-    a: 10,
-    b: 5,
+  bus.publishIn(1000, 'user_created', {
+    email: 'brian@site.com'
   });
-});
 
-var jobsToComplete = 2;
-var shutdown = function(){
-  if(jobsToComplete === 0){
-    setTimeout(function(){
-      scheduler.end(function(){
-        worker.end(function(){
-          driver.end(function(){
-            process.exit();
-          });
-        });
-      });
-    }, 500);
-  }
-};
+  bus.publishIn(2000, 'user_destroyed', {
+    email: 'brian@site.com'
+  });
+
+});
