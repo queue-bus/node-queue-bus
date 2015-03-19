@@ -39,7 +39,6 @@ describe('publish', function(){
         elem.queue.should.equal("resquebus_incoming");
         elem.args[0].thing.should.equal('stuff');
         elem.args[0].bus_event_type.should.equal("testEvent");
-        elem.args[0].bus_created_at.should.equal(now);
         elem.args[0].bus_published_at.should.equal(now);
         should.exist(elem.args[0].bus_id);
         elem.args[0].bus_app_hostname.should.equal(os.hostname());
