@@ -31,12 +31,12 @@ describe('publish', function(){
   it('will append metadata to published events', function(done){
     var now = Math.floor(new Date().getTime() / 1000)
     bus.publish(job, {'thing': 'stuff'}, function(err, toRun){
-      var key = specHelper.namespace + ':queue:resquebus_incoming';
+      var key = specHelper.namespace + ':queue:bus_incoming';
       specHelper.redis.lpop(key, function(err, elem){
         elem = JSON.parse(elem);
         elem.class.should.equal("::QueueBus::Worker");
         elem.args[0].bus_class_proxy.should.equal("::QueueBus::Driver");
-        elem.queue.should.equal("resquebus_incoming");
+        elem.queue.should.equal("bus_incoming");
         elem.args[0].thing.should.equal('stuff');
         elem.args[0].bus_event_type.should.equal("testEvent");
         elem.args[0].bus_published_at.should.equal(now);
@@ -59,7 +59,7 @@ describe('publish', function(){
           elem = JSON.parse(elem);
           elem.class.should.equal("::QueueBus::Worker");
           elem.args[0].bus_class_proxy.should.equal("::QueueBus::Publisher");
-          elem.queue.should.equal("resquebus_incoming");
+          elem.queue.should.equal("bus_incoming");
           done();
         });
       });
@@ -78,7 +78,7 @@ describe('publish', function(){
           elem = JSON.parse(elem);
           elem.class.should.equal("::QueueBus::Worker");
           elem.args[0].bus_class_proxy.should.equal("::QueueBus::Publisher");
-          elem.queue.should.equal("resquebus_incoming");
+          elem.queue.should.equal("bus_incoming");
           done();
         });
       });
@@ -93,12 +93,12 @@ describe('publish', function(){
       var timestamp = Math.round(t/1000);
       bus.publishAt(t, job, {'thing': 'stuff'}, function(){
         setTimeout(function(){
-          var key = specHelper.namespace + ':queue:resquebus_incoming';
+          var key = specHelper.namespace + ':queue:bus_incoming';
           specHelper.redis.lpop(key, function(err, elem){
             elem = JSON.parse(elem);
             elem.class.should.equal("::QueueBus::Worker");
             elem.args[0].bus_class_proxy.should.equal("::QueueBus::Publisher");
-            elem.queue.should.equal("resquebus_incoming");
+            elem.queue.should.equal("bus_incoming");
             elem.args[0].thing.should.equal('stuff');
             scheduler.end(function(){
               done();
