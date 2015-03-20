@@ -2,7 +2,7 @@
   "author": "Evan Tahler <evantahler@gmail.com>",
   "name": "node-queue-bus",
   "description": "an implementation of queuebus in node",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "homepage": "http://github.com/queuebus/node-queue-bus",
   "repository": {
     "type": "git",
