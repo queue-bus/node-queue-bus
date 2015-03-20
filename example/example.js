@@ -34,7 +34,7 @@ var jobs = {
       console.log("*** GOODBYE USER " + payload.email + " ***");
       callback();
     },
-  },
+  }
 };
 
 /////////////
@@ -67,13 +67,13 @@ var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
   // START DRIVER //
   //////////////////
 
-  // a driver is just like a normal node-resque worker, but will also work the incomming queues when idle
+  // a driver is just like a normal node-resque worker, but will also work the incoming queues when idle
   var driver = new DriverPrototype({connection: connectionDetails, queues: [bus_queue]}, jobs, function(){
     driver.workerCleanup(); // optional: cleanup any previous improperly shutdown workers
     driver.start();
   });
 
-  // converly, you could also just start a worker:
+  // alternatively, you could also just start a worker:
   // var WorkerPrototype = require("node-resque").worker;
   // worker = new WorkerPrototype({connection: connectionDetails, queues: [bus_queue]}, jobs, function(){
   //   worker.workerCleanup(); // optional: cleanup any previous improperly shutdown workers

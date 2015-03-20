@@ -34,8 +34,8 @@ describe('publish', function(){
       var key = specHelper.namespace + ':queue:bus_incoming';
       specHelper.redis.lpop(key, function(err, elem){
         elem = JSON.parse(elem);
-        elem.class.should.equal("::QueueBus::Worker");
-        elem.args[0].bus_class_proxy.should.equal("::QueueBus::Driver");
+        elem.class.should.equal("QueueBus::Worker");
+        elem.args[0].bus_class_proxy.should.equal("QueueBus::Driver");
         elem.queue.should.equal("bus_incoming");
         elem.args[0].thing.should.equal('stuff');
         elem.args[0].bus_event_type.should.equal("testEvent");
@@ -57,8 +57,8 @@ describe('publish', function(){
         var key = (specHelper.namespace + ':delayed:' + timestamp);
         specHelper.redis.lpop(key, function(err, elem){
           elem = JSON.parse(elem);
-          elem.class.should.equal("::QueueBus::Worker");
-          elem.args[0].bus_class_proxy.should.equal("::QueueBus::Publisher");
+          elem.class.should.equal("QueueBus::Worker");
+          elem.args[0].bus_class_proxy.should.equal("QueueBus::Publisher");
           elem.queue.should.equal("bus_incoming");
           done();
         });
@@ -76,8 +76,8 @@ describe('publish', function(){
         var key = (specHelper.namespace + ':delayed:' + timestamp);
         specHelper.redis.lpop(key, function(err, elem){
           elem = JSON.parse(elem);
-          elem.class.should.equal("::QueueBus::Worker");
-          elem.args[0].bus_class_proxy.should.equal("::QueueBus::Publisher");
+          elem.class.should.equal("QueueBus::Worker");
+          elem.args[0].bus_class_proxy.should.equal("QueueBus::Publisher");
           elem.queue.should.equal("bus_incoming");
           done();
         });
@@ -96,8 +96,8 @@ describe('publish', function(){
           var key = specHelper.namespace + ':queue:bus_incoming';
           specHelper.redis.lpop(key, function(err, elem){
             elem = JSON.parse(elem);
-            elem.class.should.equal("::QueueBus::Worker");
-            elem.args[0].bus_class_proxy.should.equal("::QueueBus::Publisher");
+            elem.class.should.equal("QueueBus::Worker");
+            elem.args[0].bus_class_proxy.should.equal("QueueBus::Publisher");
             elem.queue.should.equal("bus_incoming");
             elem.args[0].thing.should.equal('stuff');
             scheduler.end(function(){
