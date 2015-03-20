@@ -3,7 +3,7 @@ var namespace = "resque_test";
 
 exports.specHelper = {
   BusPrototype: require(__dirname + "/../index.js").bus,
-  DriverPrototype: require(__dirname + "/../index.js").driver,
+  RiderPrototype: require(__dirname + "/../index.js").rider,
   namespace: namespace,
   timeout: 500,
   connectionDetails: {

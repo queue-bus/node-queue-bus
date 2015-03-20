@@ -3,7 +3,7 @@ var should = require('should');
 var os = require('os');
 var SchedulerPrototype = require("node-resque").scheduler;
 var bus;
-var driver;
+var rider;
 
 var priority = 'default';
 var job      = 'testEvent';
@@ -61,13 +61,13 @@ var getAllQueues = function(callback){
   });
 };
 
-describe('driver', function(){
+describe('rider', function(){
 
   beforeEach(function(done){
     specHelper.connect(function(){
       specHelper.cleanup(function(){
         bus = new specHelper.BusPrototype({connection: specHelper.connectionDetails}, function(){
-          driver = new specHelper.DriverPrototype({connection: specHelper.connectionDetails, timeout: specHelper.timeout}, function(){
+          rider = new specHelper.RiderPrototype({connection: specHelper.connectionDetails, timeout: specHelper.timeout}, function(){
             done();
           });
         });
@@ -76,7 +76,7 @@ describe('driver', function(){
   });
 
   afterEach(function(done){
-    driver.end(function(){
+    rider.end(function(){
       done();
     });
   });
@@ -84,7 +84,7 @@ describe('driver', function(){
   it('will append metadata to driven events', function(done){
     subscribe_all(function(){
       bus.publish('event_a', {thing: 'stuff'}, function(){
-        driver.start();
+        rider.start();
         setTimeout(function(){
           getAllQueues(function(data){
             var e = JSON.parse(data.a);
@@ -104,7 +104,7 @@ describe('driver', function(){
   it('subscriptions: direct events', function(done){
     subscribe_all(function(){
       bus.publish('event_a', {thing: 'stuff'}, function(){
-        driver.start();
+        rider.start();
         setTimeout(function(){
           getAllQueues(function(data){
             data.a.length.should.equal(1);
@@ -121,7 +121,7 @@ describe('driver', function(){
   it('subscriptions: special values', function(done){
     subscribe_all(function(){
       bus.publish('event_xx', {thing: 'stuff'}, function(){
-        driver.start();
+        rider.start();
         setTimeout(function(){
           getAllQueues(function(data){
             data.a.length.should.equal(0);
@@ -138,7 +138,7 @@ describe('driver', function(){
   it('subscriptions: regexp (normal, negative)', function(done){
     subscribe_all(function(){
       bus.publish('event_d', {thing: 'stuff'}, function(){
-        driver.start();
+        rider.start();
         setTimeout(function(){
           getAllQueues(function(data){
             data.a.length.should.equal(0);
@@ -154,7 +154,7 @@ describe('driver', function(){
   it('subscriptions: regexp (normal, positive)', function(done){
     subscribe_all(function(){
       bus.publish('event_matcher_should_work', {thing: 'stuff'}, function(){
-        driver.start();
+        rider.start();
         setTimeout(function(){
           getAllQueues(function(data){
             data.a.length.should.equal(0);
@@ -171,7 +171,7 @@ describe('driver', function(){
   it('will ignore events that do not match any subscriptions', function(done){
     bus.subscribe('app_a', priority, 'job_a', { bus_event_type : "event_a" }, function(){
       bus.publish('something_crazy', {thing: 'stuff'}, function(){
-        driver.start();
+        rider.start();
         setTimeout(function(){
           getAllQueues(function(data){
             data.a.length.should.equal(0);
@@ -190,7 +190,7 @@ describe('driver', function(){
       scheduler.start();
       subscribe_all(function(){
         bus.publishIn(100, 'event_a', {thing: 'stuff'}, function(){
-          driver.start();
+          rider.start();
           setTimeout(function(){
             getAllQueues(function(data){
               data.a.length.should.equal(1);
@@ -214,7 +214,7 @@ describe('driver', function(){
         var data = {};
         data[key] = value;
         bus.publish('event_xxx', data, function(){
-          driver.start();
+          rider.start();
           setTimeout(function(){
             specHelper.redis.lrange(specHelper.namespace + ":queue:app_a_default", 0, 9999, function(err, events){
               callback(err, events);
