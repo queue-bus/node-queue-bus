@@ -1,8 +1,8 @@
-# node-bus
+# node-queue-bus
 
-[![Nodei stats](https://nodei.co/npm/node-resquebus.png?downloads=true)](https://npmjs.org/package/node-resquebus)
+[![Nodei stats](https://nodei.co/npm/node-queuebus.png?downloads=true)](https://npmjs.org/package/node-queue-bus)
 
-[![Build Status](https://travis-ci.org/taskrabbit/node-resquebus.png?branch=master)](https://travis-ci.org/taskrabbit/node-resquebus)
+[![Build Status](https://travis-ci.org/taskrabbit/node-queuebus.png?branch=master)](https://travis-ci.org/queue-bus/node-queuebus)
 
 ## Acknowledgments
 - [Queue-Bus in Ruby](https://github.com/queue-bus/queue-bus)
@@ -10,13 +10,13 @@
 
 ## What?
 
-Node-ResqueBus is a plugin for [Resque](https://github.com/resque/resque) (we use [node-resque](https://github.com/taskrabbit/node-resque) for this project) which transforms Resque into a distributed message bus.  This allows more than one application to share workloads on the bus, and for events/jobs to fan out to more than one application.  Perhaps you want the `user_created` event to be consumed by the `analytics` and `email` applications... then ResqueBus is for you.
+Node-Queue-Bus is a plugin for [Resque](https://github.com/resque/resque) (we use [node-resque](https://github.com/taskrabbit/node-resque) for this project) which transforms Resque into a distributed message bus.  This allows more than one application to share workloads on the bus, and for events/jobs to fan out to more than one application.  Perhaps you want the `user_created` event to be consumed by the `analytics` and `email` applications... then QueueBus is for you.
 
 This application is a [port of the main ruby project](https://github.com/queue-bus/queue-bus) to node.js.  This project is likley to be behind the Ruby project.  However, this package aims to be 100% compatible with the Ruby version, and can fill a driver, rider, or scheduler role within that same ecosystm (more information below).
 
 ## Ecosystem
 
-![img](https://raw.github.com/taskrabbit/node-resquebus/master/doc/data_flow.jpg)
+![img](https://raw.github.com/queue-bus/node-queue-bus/master/doc/data_flow.jpg)
 
 The publishing application sends an event (`bus.publish()`).  This event is entered into an `incomming` resque queue.  The Rider/Driver then inspects `subscriptions` and sends the event over to queues for application which have registered interest in the event.  Then, finally, workers for those events consume the jobs in a normal resque way.  You can also delay a publication `bus.publishAt()`, and in that case, a Scheduler is required to coordinate.
 
@@ -25,7 +25,7 @@ The publishing application sends an event (`bus.publish()`).  This event is ente
 We use the 'bus' object to both subscribe and publish events.  It should be passed your `connectionDetails` and optionally `jobs` (see [node-resque](https://github.com/taskrabbit/node-resque) for more information about `connectionDetails` and `jobs`)
 
 ```javascript
-var BusPrototype = require("node-resquebus").bus;
+var BusPrototype = require("node-queue-bus").bus;
 var bus = new BusPrototype({connection: connectionDetails}, jobs, function(err){
   // subscribe "myApp" to all events that match `user_*` (like `user_created`, `user_updated`, etc)
   // use the "default" priority, which would make events appear in the "myapp_default" queue in resque
@@ -135,4 +135,4 @@ When an event is passed though the entire bus, metadata is added by both the pub
 
 ## Full Example
 
-You can see a full example with workers, riders, and schedulers in [/examples/example.js](https://github.com/taskrabbit/node-resquebus/blob/examples/example.js)
+You can see a full example with workers, riders, and schedulers in [/examples/example.js](https://github.com/queue-bus/node-queue-bus/blob/examples/example.js)

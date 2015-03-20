@@ -1,12 +1,12 @@
 {
   "author": "Evan Tahler <evantahler@gmail.com>",
-  "name": "node-resquebus",
-  "description": "an implementation of resquebus in node",
+  "name": "node-queue-bus",
+  "description": "an implementation of queuebus in node",
   "version": "0.2.0",
-  "homepage": "http://github.com/taskrabbit/node-resquebus",
+  "homepage": "http://github.com/queuebus/node-queue-bus",
   "repository": {
     "type": "git",
-    "url": "git://github.com/taskrabbit/node-resquebus.git"
+    "url": "git://github.com/queuebus/node-queue-bus.git"
   },
   "main": "index.js",
   "keywords": [
