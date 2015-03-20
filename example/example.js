@@ -3,7 +3,7 @@
 /////////////////////////
 
 var BusPrototype       = require(__dirname + '/../index.js').bus;
-var DriverPrototype    = require(__dirname + '/../index.js').driver;
+var RiderPrototype     = require(__dirname + '/../index.js').rider;
 var SchedulerPrototype = require("node-resque").scheduler;
 
 ///////////////////////////
@@ -63,37 +63,30 @@ var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
     scheduler.start();
   });
 
-  //////////////////
-  // START DRIVER //
-  //////////////////
+  /////////////////
+  // START RIDER //
+  /////////////////
 
-  // a driver is just like a normal node-resque worker, but will also work the incoming queues when idle
-  var driver = new DriverPrototype({connection: connectionDetails, queues: [bus_queue]}, jobs, function(){
-    driver.workerCleanup(); // optional: cleanup any previous improperly shutdown workers
-    driver.start();
+  // a rider is just like a normal node-resque worker, but will also work the incoming queues when idle
+  var rider = new RiderPrototype({connection: connectionDetails, queues: [bus_queue], toDrive: true}, jobs, function(){
+    rider.workerCleanup(); // optional: cleanup any previous improperly shutdown workers
+    rider.start();
   });
-
-  // alternatively, you could also just start a worker:
-  // var WorkerPrototype = require("node-resque").worker;
-  // worker = new WorkerPrototype({connection: connectionDetails, queues: [bus_queue]}, jobs, function(){
-  //   worker.workerCleanup(); // optional: cleanup any previous improperly shutdown workers
-  //   worker.start();
-  // });
 
   /////////////////////////
   // REGESTER FOR EVENTS //
   /////////////////////////
 
-  driver.on('start',           function(){ console.log("driver started"); });
-  driver.on('end',             function(){ console.log("driver ended"); });
-  driver.on('cleaning_worker', function(worker, pid){ console.log("cleaning old worker " + worker); });
-  driver.on('poll',            function(queue){ console.log("driver polling " + queue); });
-  driver.on('job',             function(queue, job){ console.log("working job " + queue + " " + JSON.stringify(job)); });
-  driver.on('reEnqueue',       function(queue, job, plugin){ console.log("reEnqueue job (" + plugin + ") " + queue + " " + JSON.stringify(job)); });
-  driver.on('success',         function(queue, job, result){ console.log("job success " + queue + " " + JSON.stringify(job) + " >> " + result); });
-  driver.on('failure',         function(queue, job, failure){ console.log("job failure " + queue + " " + JSON.stringify(job) + " >> " + failure); });
-  driver.on('error',           function(queue, job, error){ console.log("error " + queue + " " + JSON.stringify(job) + " >> " + error); });
-  driver.on('pause',           function(){ console.log("worker paused"); });
+  rider.on('start',           function(){ console.log("rider started"); });
+  rider.on('end',             function(){ console.log("rider ended"); });
+  rider.on('cleaning_worker', function(worker, pid){ console.log("cleaning old worker " + worker); });
+  rider.on('poll',            function(queue){ console.log("rider polling " + queue); });
+  rider.on('job',             function(queue, job){ console.log("working job " + queue + " " + JSON.stringify(job)); });
+  rider.on('reEnqueue',       function(queue, job, plugin){ console.log("reEnqueue job (" + plugin + ") " + queue + " " + JSON.stringify(job)); });
+  rider.on('success',         function(queue, job, result){ console.log("job success " + queue + " " + JSON.stringify(job) + " >> " + result); });
+  rider.on('failure',         function(queue, job, failure){ console.log("job failure " + queue + " " + JSON.stringify(job) + " >> " + failure); });
+  rider.on('error',           function(queue, job, error){ console.log("error " + queue + " " + JSON.stringify(job) + " >> " + error); });
+  rider.on('pause',           function(){ console.log("worker paused"); });
 
   scheduler.on('start',             function(){ console.log("scheduler started"); });
   scheduler.on('end',               function(){ console.log("scheduler ended"); });
