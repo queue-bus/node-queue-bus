@@ -88,12 +88,13 @@ describe('rider', function(){
         setTimeout(function(){
           getAllQueues(function(data){
             var e = JSON.parse(data.a);
-            should.exist(e.args[0].bus_driven_at);
-            e.args[0].bus_rider_queue.should.equal('app_a_default');
-            e.args[0].bus_rider_app_key.should.equal('app_a');
-            e.args[0].bus_rider_sub_key.should.equal('app_a_default_job_a');
-            e.args[0].bus_rider_class_name.should.equal('job_a');
-            e.args[0].bus_event_type.should.equal('event_a');
+            var paylaod = JSON.parse(e.args[0]);
+            should.exist(paylaod.bus_driven_at);
+            paylaod.bus_rider_queue.should.equal('app_a_default');
+            paylaod.bus_rider_app_key.should.equal('app_a');
+            paylaod.bus_rider_sub_key.should.equal('app_a_default_job_a');
+            paylaod.bus_rider_class_name.should.equal('job_a');
+            paylaod.bus_event_type.should.equal('event_a');
             done();
           });
         }, (specHelper.timeout * 3));

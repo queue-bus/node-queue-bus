@@ -34,14 +34,15 @@ describe('publish', function(){
       var key = specHelper.namespace + ':queue:bus_incoming';
       specHelper.redis.lpop(key, function(err, elem){
         elem = JSON.parse(elem);
+        var payload = JSON.parse(elem.args[0]);
         elem.class.should.equal("QueueBus::Worker");
-        elem.args[0].bus_class_proxy.should.equal("QueueBus::Driver");
+        payload.bus_class_proxy.should.equal("QueueBus::Driver");
         elem.queue.should.equal("bus_incoming");
-        elem.args[0].thing.should.equal('stuff');
-        elem.args[0].bus_event_type.should.equal("testEvent");
-        elem.args[0].bus_published_at.should.equal(now);
-        should.exist(elem.args[0].bus_id);
-        elem.args[0].bus_app_hostname.should.equal(os.hostname());
+        payload.thing.should.equal('stuff');
+        payload.bus_event_type.should.equal("testEvent");
+        payload.bus_published_at.should.equal(now);
+        should.exist(payload.bus_id);
+        payload.bus_app_hostname.should.equal(os.hostname());
         done();
       });
     });
@@ -57,8 +58,9 @@ describe('publish', function(){
         var key = (specHelper.namespace + ':delayed:' + timestamp);
         specHelper.redis.lpop(key, function(err, elem){
           elem = JSON.parse(elem);
+          var payload = JSON.parse(elem.args[0]);
           elem.class.should.equal("QueueBus::Worker");
-          elem.args[0].bus_class_proxy.should.equal("QueueBus::Publisher");
+          payload.bus_class_proxy.should.equal("QueueBus::Publisher");
           elem.queue.should.equal("bus_incoming");
           done();
         });
@@ -76,8 +78,9 @@ describe('publish', function(){
         var key = (specHelper.namespace + ':delayed:' + timestamp);
         specHelper.redis.lpop(key, function(err, elem){
           elem = JSON.parse(elem);
+          var payload = JSON.parse(elem.args[0]);
           elem.class.should.equal("QueueBus::Worker");
-          elem.args[0].bus_class_proxy.should.equal("QueueBus::Publisher");
+          payload.bus_class_proxy.should.equal("QueueBus::Publisher");
           elem.queue.should.equal("bus_incoming");
           done();
         });
@@ -96,10 +99,11 @@ describe('publish', function(){
           var key = specHelper.namespace + ':queue:bus_incoming';
           specHelper.redis.lpop(key, function(err, elem){
             elem = JSON.parse(elem);
+            var payload = JSON.parse(elem.args[0]);
             elem.class.should.equal("QueueBus::Worker");
-            elem.args[0].bus_class_proxy.should.equal("QueueBus::Publisher");
+            payload.bus_class_proxy.should.equal("QueueBus::Publisher");
             elem.queue.should.equal("bus_incoming");
-            elem.args[0].thing.should.equal('stuff');
+            payload.thing.should.equal('stuff');
             scheduler.end(function(){
               done();
             });
