@@ -4,7 +4,6 @@
 
 var BusPrototype       = require(__dirname + '/../index.js').bus;
 var RiderPrototype     = require(__dirname + '/../index.js').rider;
-var SchedulerPrototype = require("node-resque").scheduler;
 
 ///////////////////////////
 // SET UP THE CONNECTION //
@@ -23,15 +22,9 @@ var connectionDetails = {
 //////////////////////////////
 
 var jobs = {
-  "newUserJob": {
+  "clockJob": {
     perform: function(payload, callback){
-      console.log("*** HELLO USER " + payload.email + " ***");
-      callback();
-    },
-  },
-  "deleteUserJob": {
-    perform: function(payload, callback){
-      console.log("*** GOODBYE USER " + payload.email + " ***");
+      console.log(payload);
       callback();
     },
   }
@@ -52,16 +45,7 @@ var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
   // SUBSCRIBE //
   ///////////////
 
-  bus.subscribe(appKey, 'default',    'newUserJob', { bus_event_type : /^user_created/   });
-  bus.subscribe(appKey, 'default', 'deleteUserJob', { bus_event_type : /^user_destroyed/ });
-
-  /////////////////////
-  // START SCHEDULER //
-  /////////////////////
-
-  var scheduler = new SchedulerPrototype({connection: connectionDetails}, function(){
-    scheduler.start();
-  });
+  bus.subscribe(appKey, 'default', 'clockJob', { bus_event_type : /^heartbeat_minutes/   });
 
   /////////////////
   // START RIDER //
@@ -71,6 +55,7 @@ var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
   var rider = new RiderPrototype({connection: connectionDetails, queues: [bus_queue], toDrive: true}, jobs, function(){
     rider.workerCleanup(); // optional: cleanup any previous improperly shutdown workers
     rider.start();
+    rider.heartbeatLoop();
   });
 
   /////////////////////////
@@ -87,27 +72,5 @@ var bus = new BusPrototype({connection: connectionDetails}, jobs, function(){
   rider.on('failure',         function(queue, job, failure){ console.log("job failure " + queue + " " + JSON.stringify(job) + " >> " + failure); });
   rider.on('error',           function(queue, job, error){ console.log("error " + queue + " " + JSON.stringify(job) + " >> " + error); });
   rider.on('pause',           function(){ console.log("worker paused"); });
-
-  scheduler.on('start',             function(){ console.log("scheduler started"); });
-  scheduler.on('end',               function(){ console.log("scheduler ended"); });
-  scheduler.on('poll',              function(){ console.log("scheduler polling"); });
-  scheduler.on('working_timestamp', function(timestamp){ console.log("scheduler working timestamp " + timestamp); });
-  scheduler.on('transferred_job',   function(timestamp, job){ console.log("scheduler enquing job " + timestamp + " >> " + JSON.stringify(job)); });
-
-  ///////////////////
-  // PUBLISH EVENT //
-  ///////////////////
-
-  bus.publish('user_created', {
-    email: 'evan@site.com'
-  });
-  
-  bus.publishIn(1000, 'user_created', {
-    email: 'brian@site.com'
-  });
-
-  bus.publishIn(2000, 'user_destroyed', {
-    email: 'brian@site.com'
-  });
 
 });
