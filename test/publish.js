@@ -13,9 +13,8 @@ describe('publish', function(){
   beforeEach(function(done){
     specHelper.connect(function(){
       specHelper.cleanup(function(){
-        bus = new specHelper.BusPrototype({connection: specHelper.connectionDetails}, function(){
-          done();
-        });
+        bus = new specHelper.BusPrototype({connection: specHelper.connectionDetails});
+        bus.connect(done);
       });
     });
   });
@@ -29,7 +28,7 @@ describe('publish', function(){
   });
 
   it('will append metadata to published events', function(done){
-    var now = Math.floor(new Date().getTime() / 1000)
+    var now = Math.floor(new Date().getTime() / 1000);
     bus.publish(job, {'thing': 'stuff'}, function(err, toRun){
       var key = specHelper.namespace + ':queue:bus_incoming';
       specHelper.redis.lpop(key, function(err, elem){
@@ -89,8 +88,9 @@ describe('publish', function(){
   });
 
   it('delayed publish jobs will be moved to incomming eventually', function(done){
-    this.timeout(15000)
-    var scheduler = new SchedulerPrototype({connection: specHelper.connectionDetails, timeout: specHelper.timeout}, function(){
+    this.timeout(specHelper.timeout * 4);
+    var scheduler = new SchedulerPrototype({connection: specHelper.connectionDetails, timeout: specHelper.timeout});
+    scheduler.connect(function(){
       scheduler.start();
       var t = (new Date().getTime()) + 1000;
       var timestamp = Math.round(t/1000);

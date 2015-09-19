@@ -9,27 +9,19 @@ var priority = 'default';
 var job      = 'testEvent';
 
 var subscribe_a = function(callback){
-  bus.subscribe('app_a', priority, 'job_a', { bus_event_type : "event_a" }, function(){
-    callback();
-  });
+  bus.subscribe('app_a', priority, 'job_a', { bus_event_type : "event_a" }, callback);
 };
 
 var subscribe_b = function(callback){
-  bus.subscribe('app_b', priority, 'job_b', { bus_event_type : "event_b" }, function(){
-    callback();
-  });
+  bus.subscribe('app_b', priority, 'job_b', { bus_event_type : "event_b" }, callback);
 };
 
 var subscribe_c = function(callback){
-  bus.subscribe('app_c', priority, 'job_c', { bus_event_type : "bus_special_value_present" }, function(){
-    callback();
-  });
+  bus.subscribe('app_c', priority, 'job_c', { bus_event_type : "bus_special_value_present" }, callback);
 };
 
 var subscribe_d = function(callback){
-  bus.subscribe('app_d', priority, 'job_d', { bus_event_type : /^.*matcher.*$/g }, function(){
-    callback();
-  });
+  bus.subscribe('app_d', priority, 'job_d', { bus_event_type : /^.*matcher.*$/g }, callback);
 };
 
 var subscribe_all = function(callback){
@@ -66,11 +58,9 @@ describe('rider', function(){
   beforeEach(function(done){
     specHelper.connect(function(){
       specHelper.cleanup(function(){
-        bus = new specHelper.BusPrototype({connection: specHelper.connectionDetails}, function(){
-          rider = new specHelper.RiderPrototype({connection: specHelper.connectionDetails, timeout: specHelper.timeout}, function(){
-            done();
-          });
-        });
+        bus = new specHelper.BusPrototype({connection: specHelper.connectionDetails});
+        rider = new specHelper.RiderPrototype({connection: specHelper.connectionDetails, timeout: specHelper.timeout});
+        bus.connect(function(){ rider.connect(done); });
       });
     });
   });
@@ -187,7 +177,8 @@ describe('rider', function(){
   });
 
   it('can publish a delayed job', function(done){
-    var scheduler = new SchedulerPrototype({connection: specHelper.connectionDetails, timeout: specHelper.timeout}, function(){
+    var scheduler = new SchedulerPrototype({connection: specHelper.connectionDetails, timeout: specHelper.timeout});
+    scheduler.connect(function(){
       scheduler.start();
       subscribe_all(function(){
         bus.publishIn(100, 'event_a', {thing: 'stuff'}, function(){
@@ -198,9 +189,7 @@ describe('rider', function(){
               data.b.length.should.equal(0);
               data.c.length.should.equal(1);
               data.d.length.should.equal(0);
-              scheduler.end(function(){
-                done();
-              });
+              scheduler.end(done);
             });
           }, (specHelper.timeout * 5));
         });
@@ -261,6 +250,56 @@ describe('rider', function(){
         done();
       });
     });
+  });
+
+  describe('heartbeat', function(){
+
+    it('can work out the QueueBus::Heartbeat job', function(done){
+      var now = new Date();
+      bus.subscribe('time_app', priority, 'time_job', { bus_event_type : "heartbeat_minutes" }, function(){
+        bus.publishHeartbeat(function(){
+          rider.start();
+          setTimeout(function(){
+            specHelper.redis.lrange(specHelper.namespace + ":queue:time_app_default", 0, 9999, function(err, events){
+              events.length.should.equal(1);
+              var event = JSON.parse(events[0]);
+              var args = JSON.parse(event.args[0]);
+
+              event.class.should.equal('QueueBus::Worker');
+              event.queue.should.equal('time_app_default');
+              args.bus_rider_sub_key.should.equal('time_app_default_time_job');
+              args.minute.should.equal( now.getMinutes() );
+              args.hour.should.equal( now.getHours() );
+              args.day.should.equal( now.getDate() );
+              args.month.should.equal( now.getMonth() + 1 );
+              args.year.should.equal( now.getFullYear() );
+
+              done();
+            });
+          }, 1000);
+        });
+      });
+    });
+
+    it('will only heartbeat up to the present time, no matter how many calls', function(){
+      var now = new Date();
+      bus.subscribe('time_app', priority, 'time_job', { bus_event_type : "heartbeat_minutes" }, function(){
+        bus.publishHeartbeat(function(){
+        bus.publishHeartbeat(function(){
+        bus.publishHeartbeat(function(){
+          rider.start();
+          setTimeout(function(){
+            specHelper.redis.lrange(specHelper.namespace + ":queue:time_app_default", 0, 9999, function(err, events){
+              events.length.should.equal(1);
+              done();
+            });
+          }, 1000);
+        });
+        });
+        });
+      });
+    });
+
   });
 
 });

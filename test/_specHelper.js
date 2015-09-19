@@ -1,4 +1,4 @@
-var redis = require('redis');
+var redis = require('ioredis');
 var namespace = "resque_test";
 
 exports.specHelper = {
@@ -7,7 +7,7 @@ exports.specHelper = {
   namespace: namespace,
   timeout: 500,
   connectionDetails: {
-    package:  'redis',
+    package:  'ioredis',
     host:      "127.0.0.1",
     password:  "",
     port:      6379,
@@ -33,13 +33,11 @@ exports.specHelper = {
   cleanup: function(callback){
     var self = this;
     self.redis.keys(self.namespace + "*", function(err, keys){
-      if(keys.length == 0){ 
+      if(keys.length === 0){ 
         callback(); 
       }else{
-        self.redis.del(keys, function(){
-          callback();
-        });
+        self.redis.del(keys, callback);
       }
     });
   }
-}
+};
