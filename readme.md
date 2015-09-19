@@ -2,7 +2,7 @@
 
 [![Nodei stats](https://nodei.co/npm/node-queue-bus.png?downloads=true)](https://npmjs.org/package/node-queue-bus)
 
-[![Build Status](https://travis-ci.org/queue-bus/node-queue-bus.png?branch=master)](https://travis-ci.org/queue-bus/node-queuebus)
+[![Build Status](https://travis-ci.org/queue-bus/node-queue-bus.png?branch=master)](https://travis-ci.org/queue-bus/node-queue-bus)
 
 ## Acknowledgments
 - [Queue-Bus in Ruby](https://github.com/queue-bus/queue-bus)

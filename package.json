@@ -2,11 +2,11 @@
   "author": "Evan Tahler <evantahler@gmail.com>",
   "name": "node-queue-bus",
   "description": "an implementation of queuebus in node",
-  "version": "0.1.1",
-  "homepage": "http://github.com/queuebus/node-queue-bus",
+  "version": "0.1.0",
+  "homepage": "http://github.com/queue-bus/node-queue-bus",
   "repository": {
     "type": "git",
-    "url": "git://github.com/queuebus/node-queue-bus.git"
+    "url": "git://github.com/queue-bus/node-queue-bus.git"
   },
   "main": "index.js",
   "keywords": [
@@ -25,8 +25,7 @@
   "dependencies": {
     "ioredis": "^1.9.0",
     "node-resque": "1.0.1",
-    "node-uuid": "1.x.x",
-    "system-timezone": "0.0.2"
+    "node-uuid": "1.x.x"
   },
   "devDependencies": {
     "mocha": "2.3.2",
