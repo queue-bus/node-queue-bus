@@ -24,34 +24,8 @@ The publishing application sends an event (`bus.publish()`).  This event is ente
 
 We use the 'bus' object to both subscribe and publish events.  It should be passed your `connectionDetails` and optionally `jobs` (see [node-resque](https://github.com/taskrabbit/node-resque) for more information about `connectionDetails` and `jobs`)
 
-```javascript
-var BusPrototype = require("node-queue-bus").bus;
-var bus = new BusPrototype({connection: connectionDetails}, jobs, function(err){
-  // subscribe "myApp" to all events that match `user_*` (like `user_created`, `user_updated`, etc)
-  // use the "default" priority, which would make events appear in the "myapp_default" queue in resque
-  // when we get events matching `user_*`, run the job "handleUser"
-  bus.subscribe('myApp', 'default', 'handleUser', { bus_event_type : /^user_.*/ });
-});
-```
+See the Examples to learn more
 
-Once your `bus` is connected, you can publish events.  You must always define 'bus_event_type' and then an optional hash of data:
-
-```javascript
-bus.publish('user_created', {
-  email: 'evan@site.com',
-});
-
-bus.publishIn(1000, 'user_updated', {
-  email: 'evan@site.com',
-  userId: 123,
-});
-
-bus.publishIn(1000, 'user_updated', {
-  email_was: 'evan@site.com',
-  email_is:  'evan2@site.com',
-  userId: 123,
-});
-```
 ### Methods:
 
 - `bus.subscriptions(callback(error, subsciptions, count))`
@@ -61,6 +35,21 @@ bus.publishIn(1000, 'user_updated', {
 - `bus.publish(bus_event_type, args, callback(error, toRun))`
 - `bus.publishAt(timestamp, bus_event_type, args, callback(error, toRun))`
 - `bus.publishIn(delay, bus_event_type, args, callback(error, toRun))`
+- `bus.publishHeartbeat(callback(error))`
+
+You need to be certain that only one process within your ecosystem is running `bus.publishHeartbeat` at once.  To do this, you can key into the scheduler's master status like so: 
+```
+var scheduler = new SchedulerPrototype({connection: connectionDetails});
+scheduler.connect(function(){
+  scheduler.start();
+  setInterval(function(){
+    if(scheduler.master){
+      console.log('enqueue heartbeat');
+      bus.publishHeartbeat(); 
+    }
+  }, 1000 * 60);
+});
+```
 
 Keep in mind that if you use `publishAt` or `publishIn`, you will need to have a `Scheduler` running in your ecosystem.
 
@@ -90,7 +79,8 @@ For example, a matcher like `{ first_name: 'bus_special_value_present' }` would 
 Running a rider is just like running a normal resque worker with the added bonus that it will also work the incomming queue to fan out jobs when its primary queues are empty.  The rider takes the same inputs as a worker, and simply appends some special jobs to handle the fan-out and bus queues.
 
 ```javascript
-var rider = new RiderPrototype({connection: connectionDetails, toDrive: true}, jobs, function(){
+var rider = new RiderPrototype({connection: connectionDetails, toDrive: true}, jobs);
+rider.connect(function(){
   rider.workerCleanup(); // optional: cleanup any previous improperly shutdown workers
   rider.start();
 });
