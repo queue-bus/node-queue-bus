@@ -11,9 +11,8 @@ describe('subscriptions', function(){
   beforeEach(function(done){
     specHelper.connect(function(){
       specHelper.cleanup(function(){
-        bus = new specHelper.BusPrototype({connection: specHelper.connectionDetails}, function(){
-          done();
-        });
+        bus = new specHelper.BusPrototype({connection: specHelper.connectionDetails});
+        bus.connect(done);
       });
     });
   });
