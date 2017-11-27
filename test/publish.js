@@ -1,34 +1,39 @@
-var specHelper = require(__dirname + "/_specHelper.js").specHelper;
-var should = require('should');
-var os = require('os');
-var SchedulerPrototype = require("node-resque").scheduler;
-var bus;
+const SpecHelper = require("./_specHelper.js");
+const should = require('should');
+const os = require('os');
+const SchedulerPrototype = require("node-resque").scheduler;
+let bus;
+let helper = new SpecHelper();
 
-var appKey   = 'testapp';
-var priority = 'default';
-var job      = 'testEvent';
+const appKey   = 'testapp';
+const priority = 'default';
+const job      = 'testEvent';
+let hook;
 
 describe('publish', function(){
 
-  beforeEach(function(done){
-    specHelper.connect(function(){
-      specHelper.cleanup(function(){
-        bus = new specHelper.BusPrototype({connection: specHelper.connectionDetails});
-        bus.connect(done);
-      });
-    });
+  beforeEach(async () => {
+    console.log(SpecHelper);
+    await helper.logger.info('starting test');
+    
+    await helper.connect();
+    bus = helper.bus;
+    await helper.cleanup();
   });
 
-  it('can publish', function(done){
-    bus.publish(job, {'thing': 'stuff'}, function(err, toRun){
-      should.not.exist(err);
-      toRun.should.equal(true);
-      done();
-    });
+  afterEach(async () => { 
+    await helper.cleanup(); 
+  });
+
+  it('can publish', async () => {
+    await bus.publish(job, {'thing': 'stuff'})
+    await should.not.exist(err);
+    await toRun.should.equal(true);
+    done();
   });
 
   it('will append metadata to published events', function(done){
-    var now = Math.floor(new Date().getTime() / 1000);
+    const now = Math.floor(new Date().getTime() / 1000);
     bus.publish(job, {'thing': 'stuff'}, function(err, toRun){
       var key = specHelper.namespace + ':queue:bus_incoming';
       specHelper.redis.lpop(key, function(err, elem){

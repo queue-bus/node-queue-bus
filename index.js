@@ -1,2 +1,2 @@
-exports.bus   = require(__dirname + "/lib/bus.js").bus;
-exports.rider = require(__dirname + "/lib/rider.js").rider;
+exports.Bus   = require(__dirname + "/lib/bus.js");
+exports.Rider = require(__dirname + "/lib/rider.js");

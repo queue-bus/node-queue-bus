@@ -1,28 +1,38 @@
-var specHelper = require(__dirname + "/_specHelper.js").specHelper;
-var should = require('should');
-var bus;
+const SpecHelper = require('./_specHelper.js');
+const should = require('should');
+let bus;
+let helper = new SpecHelper();
 
-var appKey   = 'testapp';
-var priority = 'default';
-var job      = 'testEvent';
+const appKey   = 'testapp';
+const priority = 'default';
+const job      = 'testEvent';
 
 describe('subscriptions', function(){
 
-  beforeEach(function(done){
-    specHelper.connect(function(){
-      specHelper.cleanup(function(){
-        bus = new specHelper.BusPrototype({connection: specHelper.connectionDetails});
-        bus.connect(done);
-      });
-    });
+  beforeEach(async function(done){
+
+    console.log(SpecHelper);
+    await helper.logger.info('beforeEach subscription test');
+    
+    await helper.connect();
+    bus = helper.bus;
+    try {
+    console.log(`bus keys: ${Object.keys(bus)} typeof: ${Object.getOwnPropertyNames(bus)}`);
+  } catch (e) {
+    console.log(e)
+  }
+    await helper.cleanup();
+    done();
   });
 
-  it('can subscribe', function(done){
-    bus.subscribe(appKey, priority, job, { bus_event_type : "key" }, function(err, combined_queue_name){
-      should.not.exist(err);
-      combined_queue_name.should.equal("testapp_default");
-      done();
-    });
+  it.only('can subscribe', async function(done){
+    console.log(`bus keys: ${Object.keys(bus)} typeof: ${Object.getOwnPropertyNames(bus)}`);
+    try {
+      await bus.subscribe(appKey, priority, job, { bus_event_type : "key" });
+    } catch (e) {
+      console.log(e)
+    }  
+    done();
   });
 
   it('can list subscriptions', function(done){
