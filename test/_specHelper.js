@@ -27,6 +27,11 @@ class SpecHelper {
       namespace: namespace,
       // looping: true
     };
+
+    process.on('unhandledRejection', (reason, p) => {
+      console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+      // application specific logging, throwing an error, or other logic here
+    });
   }
   
   async connect () {
@@ -38,8 +43,10 @@ class SpecHelper {
      }
      await this.redis.select(this.connectionDetails.database);
      this.connectionDetails.redis = this.redis;
-     console.log("bus definition" + Object.keys(Bus));
+     
      this.bus = new Bus({connection: this.connectionDetails});
+     console.log(`bus definition ${Object.keys(this.bus)} redis: ${Object.keys(this.bus.connection.redis)}`);
+     this.logger.info(`created bus ${this.bus} subscribe: ${this.bus.subscribe}`)
      this.logger.info('SpecHelper connect ends');
   }
 
