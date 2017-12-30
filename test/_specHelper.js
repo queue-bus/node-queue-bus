@@ -1,6 +1,6 @@
 const Redis = require('ioredis');
 const Bus = require(__dirname + "/../index.js").Bus;
-const Rider = require(__dirname + "/../index.js");
+const Rider = require(__dirname + "/../index.js").Rider;
 const winston = require('winston');
 const namespace = "resque_test";
 
@@ -45,6 +45,7 @@ class SpecHelper {
      //this.connectionDetails.redis = this.redis;
      
      this.bus = new Bus({connection: this.connectionDetails});
+     this.rider = new Rider({connection: this.connectionDetails, timeout: this.timeout});
      await this.bus.connection.connect();
      this.logger.debug(`bus definition ${Object.keys(this.bus)} connection: '${Object.keys(this.bus.connection)}'`);
      this.logger.debug(`created bus ${this.bus} subscribe: ${this.bus.subscribe}`)

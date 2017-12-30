@@ -1,95 +1,85 @@
-const specHelper = require(__dirname + "/_specHelper.js").specHelper;
+const SpecHelper = require('./_specHelper.js');
 const should = require('should');
+const expect = require('chai').expect;
 const os = require('os');
 const SchedulerPrototype = require("node-resque").scheduler;
 let bus;
 let rider;
+let helper = new SpecHelper();
 
 const priority = 'default';
 const job      = 'testEvent';
 
-var subscribe_a = function(callback){
-  bus.subscribe('app_a', priority, 'job_a', { bus_event_type : "event_a" }, callback);
+let subscribe_a = async () => {
+  await bus.subscribe('app_a', priority, 'job_a', { bus_event_type : "event_a" });
 };
 
-var subscribe_b = function(callback){
-  bus.subscribe('app_b', priority, 'job_b', { bus_event_type : "event_b" }, callback);
+let subscribe_b = async () => {
+  await bus.subscribe('app_b', priority, 'job_b', { bus_event_type : "event_b" });
 };
 
-var subscribe_c = function(callback){
-  bus.subscribe('app_c', priority, 'job_c', { bus_event_type : "bus_special_value_present" }, callback);
+let subscribe_c = async () => {
+  await bus.subscribe('app_c', priority, 'job_c', { bus_event_type : "bus_special_value_present" });
 };
 
-var subscribe_d = function(callback){
-  bus.subscribe('app_d', priority, 'job_d', { bus_event_type : /^.*matcher.*$/g }, callback);
+let subscribe_d = async () => {
+  await bus.subscribe('app_d', priority, 'job_d', { bus_event_type : /^.*matcher.*$/g });
 };
 
-var subscribe_all = function(callback){
-  subscribe_a(function(){
-  subscribe_b(function(){
-  subscribe_c(function(){
-  subscribe_d(function(){
-    callback();
-  });
-  });
-  });
-  });
+let subscribe_all = async () => {
+  await Promise.all([subscribe_a(), 
+                     subscribe_b(),
+                     subscribe_c(),
+                     subscribe_d() ]);  
 };
 
-var getAllQueues = function(callback){
-  specHelper.redis.lrange(specHelper.namespace + ":queue:app_a_default", 0, 9999, function(err, events_a){
-  specHelper.redis.lrange(specHelper.namespace + ":queue:app_b_default", 0, 9999, function(err, events_b){
-  specHelper.redis.lrange(specHelper.namespace + ":queue:app_c_default", 0, 9999, function(err, events_c){
-  specHelper.redis.lrange(specHelper.namespace + ":queue:app_d_default", 0, 9999, function(err, events_d){
-      callback({
-        a: events_a,
-        b: events_b,
-        c: events_c,
-        d: events_d,
-      });
-  });
-  });
-  });
-  });
+let getAllQueues = async () => {
+  let events_a = await bus.connection.redis.lrange(helper.namespace + ":queue:app_a_default", 0, 9999);
+  let events_b = await bus.connection.redis.lrange(helper.namespace + ":queue:app_b_default", 0, 9999);
+  let events_c = await bus.connection.redis.lrange(helper.namespace + ":queue:app_c_default", 0, 9999);
+  let events_d = await bus.connection.redis.lrange(helper.namespace + ":queue:app_d_default", 0, 9999);
+  return { a: events_a,
+           b: events_b,
+           c: events_c,
+           d: events_d
+          };
 };
 
 describe('rider', function(){
 
-  beforeEach(function(done){
-    specHelper.connect(function(){
-      specHelper.cleanup(function(){
-        bus = new specHelper.BusPrototype({connection: specHelper.connectionDetails});
-        rider = new specHelper.RiderPrototype({connection: specHelper.connectionDetails, timeout: specHelper.timeout});
-        bus.connect(function(){ rider.connect(done); });
-      });
-    });
+  beforeEach(async () => {
+
+    await helper.connect();
+    bus = helper.bus;
+    rider = helper.rider;
+   
+    let cleanup = await helper.cleanup()
+    expect(cleanup).to.equal(undefined);
+
   });
 
-  afterEach(function(done){
-    rider.end(function(){
-      done();
-    });
+  afterEach(async () => {
+    await rider.end();
+    await helper.cleanup(); 
+    await helper.quit();
   });
 
-  it('will append metadata to driven events', function(done){
-    subscribe_all(function(){
-      bus.publish('event_a', {thing: 'stuff'}, function(){
-        rider.start();
-        setTimeout(function(){
-          getAllQueues(function(data){
-            var e = JSON.parse(data.a);
-            var paylaod = JSON.parse(e.args[0]);
-            should.exist(paylaod.bus_driven_at);
-            paylaod.bus_rider_queue.should.equal('app_a_default');
-            paylaod.bus_rider_app_key.should.equal('app_a');
-            paylaod.bus_rider_sub_key.should.equal('app_a_default_job_a');
-            paylaod.bus_rider_class_name.should.equal('job_a');
-            paylaod.bus_event_type.should.equal('event_a');
-            done();
-          });
-        }, (specHelper.timeout * 3));
-      });
-    });
+  it.only('will append metadata to driven events', async () => {
+    await subscribe_all();
+    await bus.publish('event_a', {thing: 'stuff'});
+    await rider.start();
+    await helper.sleep(helper.timeout * 3);
+    let data = await getAllQueues();
+    console.log(`data: ${JSON.stringify(data)}`)
+    let e = JSON.parse(data.a);
+    let paylaod = JSON.parse(e.args[0]);
+    should.exist(paylaod.bus_driven_at);
+    paylaod.bus_rider_queue.should.equal('app_a_default');
+    paylaod.bus_rider_app_key.should.equal('app_a');
+    paylaod.bus_rider_sub_key.should.equal('app_a_default_job_a');
+    paylaod.bus_rider_class_name.should.equal('job_a');
+    paylaod.bus_event_type.should.equal('event_a');
+
   });
 
   it('subscriptions: direct events', function(done){
