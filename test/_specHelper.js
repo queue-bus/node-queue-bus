@@ -52,7 +52,13 @@ class SpecHelper {
 
   async cleanup () {
      let keys = await this.redis.keys(this.namespace + '*')
+     this.logger.info(`what redis.keys ${keys}`)
      if (keys.length > 0) { await this.redis.del(keys) }
+  }
+
+  async quit() {
+    this.logger.info('quitting redis');
+    this.redis.quit();
   }
 }
 module.exports=SpecHelper;
