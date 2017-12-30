@@ -1,5 +1,6 @@
 const SpecHelper = require("./_specHelper.js");
 const should = require('should');
+const expect = require('chai').expect;
 const os = require('os');
 const SchedulerPrototype = require("node-resque").scheduler;
 let bus;
@@ -12,22 +13,22 @@ let hook;
 
 describe('publish', function(){
 
-  beforeEach(async () => {
-    console.log(SpecHelper);
-    await helper.logger.info('starting test');
-    
+  beforeEach(async () => { 
     await helper.connect();
     bus = helper.bus;
-    await helper.cleanup();
+   
+    let cleanup = await helper.cleanup()
+    expect(cleanup).to.equal(undefined);
   });
 
   afterEach(async () => { 
     await helper.cleanup(); 
+    await helper.quit();
   });
 
   it('can publish', async () => {
-    await bus.publish(job, {'thing': 'stuff'})
-    await should.not.exist(err);
+    let publish = await bus.publish(job, {'thing': 'stuff'})
+    console.log(`publish: ${publish}`)
     await toRun.should.equal(true);
     done();
   });
