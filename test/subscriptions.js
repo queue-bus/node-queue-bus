@@ -9,7 +9,7 @@ const appKey   = 'testapp';
 const priority = 'default';
 const job      = 'testEvent';
 
-describe.only('subscriptions', function(){
+describe('subscriptions', function(){
 
   beforeEach(async () => {
     await helper.connect();

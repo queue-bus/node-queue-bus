@@ -35,30 +35,35 @@ class SpecHelper {
   
   async connect () {
      this.logger.debug('SpecHelper connect starts')
-     this.redis = new Redis(this.connectionDetails.port, this.connectionDetails.host, this.connectionDetails.options);
-     this.redis.setMaxListeners(0)
+     //this.redis = new Redis(this.connectionDetails.port, this.connectionDetails.host, this.connectionDetails.options);
+     //this.redis.setMaxListeners(0)
      if (this.connectionDetails.password !== null && this.connectionDetails.password !== '') {
        let auth = await this.redis.auth(this.connectionDetails.password);
      }
-     let database = await this.redis.select(this.connectionDetails.database);
-     this.logger.debug(`database: ${database}`);  
-     this.connectionDetails.redis = this.redis;
+    // let database = await this.redis.select(this.connectionDetails.database);
+     //this.logger.debug(`database: ${database}`);  
+     //this.connectionDetails.redis = this.redis;
      
      this.bus = new Bus({connection: this.connectionDetails});
-     this.logger.debug(`bus definition ${Object.keys(this.bus)} redis: ${Object.keys(this.bus.connection.redis)}`);
+     await this.bus.connection.connect();
+     this.logger.debug(`bus definition ${Object.keys(this.bus)} connection: '${Object.keys(this.bus.connection)}'`);
      this.logger.debug(`created bus ${this.bus} subscribe: ${this.bus.subscribe}`)
      this.logger.debug('SpecHelper connect ends');
   }
 
   async cleanup () {
-     let keys = await this.redis.keys(this.namespace + '*')
+     let keys = await this.bus.connection.redis.keys(this.namespace + '*')
      this.logger.debug(`what redis.keys ${keys}`)
-     if (keys.length > 0) { await this.redis.del(keys) }
+     if (keys.length > 0) { await this.bus.connection.redis.del(keys) }
   }
 
   async quit() {
     this.logger.debug('quitting redis');
-    this.redis.quit();
+    this.bus.connection.redis.quit();
+  }
+
+  async sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 module.exports=SpecHelper;

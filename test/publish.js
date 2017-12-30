@@ -2,7 +2,7 @@ const SpecHelper = require("./_specHelper.js");
 const should = require('should');
 const expect = require('chai').expect;
 const os = require('os');
-const SchedulerPrototype = require("node-resque").scheduler;
+const NodeResque = require("node-resque")
 let bus;
 let helper = new SpecHelper();
 
@@ -28,95 +28,78 @@ describe('publish', function(){
 
   it('can publish', async () => {
     let publish = await bus.publish(job, {'thing': 'stuff'})
-    console.log(`publish: ${publish}`)
-    await toRun.should.equal(true);
-    done();
+    expect(publish).to.be.true;
   });
 
-  it('will append metadata to published events', function(done){
+  it('will append metadata to published events', async () => {
     const now = Math.floor(new Date().getTime() / 1000);
-    bus.publish(job, {'thing': 'stuff'}, function(err, toRun){
-      var key = specHelper.namespace + ':queue:bus_incoming';
-      specHelper.redis.lpop(key, function(err, elem){
-        elem = JSON.parse(elem);
-        var payload = JSON.parse(elem.args[0]);
-        elem.class.should.equal("QueueBus::Worker");
-        payload.bus_class_proxy.should.equal("QueueBus::Driver");
-        elem.queue.should.equal("bus_incoming");
-        payload.thing.should.equal('stuff');
-        payload.bus_event_type.should.equal("testEvent");
-        payload.bus_published_at.should.equal(now);
-        should.exist(payload.bus_id);
-        payload.bus_app_hostname.should.equal(os.hostname());
-        done();
-      });
-    });
+    let publish = await bus.publish(job, {'thing': 'stuff'});
+    let key = helper.namespace + ':queue:bus_incoming';
+    let element = await bus.connection.redis.lpop(key);
+    let elem = JSON.parse(element);
+    let payload = JSON.parse(elem.args[0]);
+    elem.class.should.equal("QueueBus::Worker");
+    payload.bus_class_proxy.should.equal("QueueBus::Driver");
+    elem.queue.should.equal("bus_incoming");
+    payload.thing.should.equal('stuff');
+    payload.bus_event_type.should.equal("testEvent");
+    payload.bus_published_at.should.equal(now);
+    should.exist(payload.bus_id);
+    payload.bus_app_hostname.should.equal(os.hostname());
   });
 
-  it('can publishAt', function(done){
-    var t = (new Date().getTime()) + 1000;
-    var timestamp = Math.round(t/1000);
-    bus.publishAt(t, job, {'thing': 'stuff'}, function(){
-      var key = (specHelper.namespace + ':delayed_queue_schedule');
-      specHelper.redis.zscore(key, timestamp, function(err, score){
-        score.should.equal(String(timestamp));
-        var key = (specHelper.namespace + ':delayed:' + timestamp);
-        specHelper.redis.lpop(key, function(err, elem){
-          elem = JSON.parse(elem);
-          var payload = JSON.parse(elem.args[0]);
-          elem.class.should.equal("QueueBus::Worker");
-          payload.bus_class_proxy.should.equal("QueueBus::Publisher");
-          elem.queue.should.equal("bus_incoming");
-          done();
-        });
-      });
-    });
+  it('can publishAt', async () => {
+    let t = (new Date().getTime()) + 1000;
+    let timestamp = Math.round(t/1000);
+    let stuff = await bus.publishAt(t, job, {'thing': 'stuff'});
+    let key = (helper.namespace + ':delayed_queue_schedule');
+    let score = await bus.connection.redis.zscore(key, timestamp);
+    score.should.equal(String(timestamp));
+    let delayedKey = (helper.namespace + ':delayed:' + timestamp);
+    let elem = await bus.connection.redis.lpop(delayedKey);
+    elem = JSON.parse(elem);
+    let payload = JSON.parse(elem.args[0]);
+    elem.class.should.equal("QueueBus::Worker");
+    payload.bus_class_proxy.should.equal("QueueBus::Publisher");
+    elem.queue.should.equal("bus_incoming");
   });
 
-  it('can publishIn', function(done){
-    var t = 1000;
-    var timestamp = Math.round((new Date().getTime() + t) / 1000);
-    bus.publishIn(t, job, {'thing': 'stuff'}, function(){
-      var key = (specHelper.namespace + ':delayed_queue_schedule');
-      specHelper.redis.zscore(key, timestamp, function(err, score){
-        score.should.equal(String(timestamp));
-        var key = (specHelper.namespace + ':delayed:' + timestamp);
-        specHelper.redis.lpop(key, function(err, elem){
-          elem = JSON.parse(elem);
-          var payload = JSON.parse(elem.args[0]);
-          elem.class.should.equal("QueueBus::Worker");
-          payload.bus_class_proxy.should.equal("QueueBus::Publisher");
-          elem.queue.should.equal("bus_incoming");
-          done();
-        });
-      });
-    });
+  it('can publishIn', async () => {
+    let t = (new Date().getTime()) + 1000;;
+    let timestamp = Math.round((new Date().getTime() + t) / 1000);
+    let stuff = await bus.publishIn(t, job, {'thing': 'stuff'});
+    let key = (helper.namespace + ':delayed_queue_schedule'); 
+    let score = await bus.connection.redis.zscore(key, timestamp);
+    score.should.equal(String(timestamp));
+    let delayedKey = (helper.namespace + ':delayed:' + timestamp);
+    let elem = await bus.connection.redis.lpop(delayedKey);
+    elem = JSON.parse(elem);
+    let payload = JSON.parse(elem.args[0]);
+    elem.class.should.equal("QueueBus::Worker");
+    payload.bus_class_proxy.should.equal("QueueBus::Publisher");
+    elem.queue.should.equal("bus_incoming");
   });
 
-  it('delayed publish jobs will be moved to incomming eventually', function(done){
-    this.timeout(specHelper.timeout * 4);
-    var scheduler = new SchedulerPrototype({connection: specHelper.connectionDetails, timeout: specHelper.timeout});
-    scheduler.connect(function(){
-      scheduler.start();
-      var t = (new Date().getTime()) + 1000;
-      var timestamp = Math.round(t/1000);
-      bus.publishAt(t, job, {'thing': 'stuff'}, function(){
-        setTimeout(function(){
-          var key = specHelper.namespace + ':queue:bus_incoming';
-          specHelper.redis.lpop(key, function(err, elem){
-            elem = JSON.parse(elem);
-            var payload = JSON.parse(elem.args[0]);
-            elem.class.should.equal("QueueBus::Worker");
-            payload.bus_class_proxy.should.equal("QueueBus::Publisher");
-            elem.queue.should.equal("bus_incoming");
-            payload.thing.should.equal('stuff');
-            scheduler.end(function(){
-              done();
-            });
-          });
-        }, (specHelper.timeout * 3));
-      });
-    });
+  it('delayed publish jobs will be moved to incomming eventually', async () => {
+    this.timeout(helper.timeout * 4);
+    let scheduler = new NodeResque.Scheduler({connection: helper.connectionDetails, timeout: helper.timeout});
+    await scheduler.connect();
+    scheduler.start();
+    let t = (new Date().getTime()) + 1000;
+    let timestamp = Math.round(t/1000);
+    await bus.publishAt(t, job, {'thing': 'stuff'});
+    console.log('start');
+    await helper.sleep(helper.timeout * 3);
+    console.log('end');
+    let key = helper.namespace + ':queue:bus_incoming';
+    let elem = await bus.connection.redis.lpop(key);
+    console.log(`key ${key} element: ${elem} ${JSON.stringify(elem)}`);
+    elem = JSON.parse(elem);
+    let payload = JSON.parse(elem.args[0]);
+    elem.class.should.equal("QueueBus::Worker");
+    payload.bus_class_proxy.should.equal("QueueBus::Publisher");
+    elem.queue.should.equal("bus_incoming");
+    payload.thing.should.equal('stuff');
   });
 
 });

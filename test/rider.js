@@ -1,12 +1,12 @@
-var specHelper = require(__dirname + "/_specHelper.js").specHelper;
-var should = require('should');
-var os = require('os');
-var SchedulerPrototype = require("node-resque").scheduler;
-var bus;
-var rider;
+const specHelper = require(__dirname + "/_specHelper.js").specHelper;
+const should = require('should');
+const os = require('os');
+const SchedulerPrototype = require("node-resque").scheduler;
+let bus;
+let rider;
 
-var priority = 'default';
-var job      = 'testEvent';
+const priority = 'default';
+const job      = 'testEvent';
 
 var subscribe_a = function(callback){
   bus.subscribe('app_a', priority, 'job_a', { bus_event_type : "event_a" }, callback);
