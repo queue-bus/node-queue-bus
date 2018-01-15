@@ -11,7 +11,7 @@ class SpecHelper {
     this.namespace = namespace;
     this.timeout = 500;
     this.logger = new (winston.createLogger)({
-      level: 'info',
+      level: 'debug',
       format: winston.format.simple(),
       transports: [
         new winston.transports.Console(),
@@ -53,8 +53,9 @@ class SpecHelper {
   }
 
   async cleanup () {
-     let keys = await this.bus.connection.redis.keys(this.namespace + '*')
-     this.logger.debug(`what redis.keys ${keys}`)
+    let keyspace = `${this.namespace}*`;
+     let keys = await this.bus.connection.redis.keys(keyspace)
+     this.logger.debug(`what redis.keys: ${keys} namespace=${keyspace}`)
      if (keys.length > 0) { await this.bus.connection.redis.del(keys) }
   }
 

@@ -50,10 +50,9 @@ describe('rider', function(){
   beforeEach(async () => {
 
     await helper.connect();
+    let cleanup = await helper.cleanup();
     bus = helper.bus;
     rider = helper.rider;
-   
-    let cleanup = await helper.cleanup()
     expect(cleanup).to.equal(undefined);
 
   });

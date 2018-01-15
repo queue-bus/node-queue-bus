@@ -24,16 +24,16 @@
     "node": ">=8.9.1"
   },
   "dependencies": {
-    "ioredis": "^3.2.1",
-    "node-resque": "^5.0.2",
+    "ioredis": "^3.2.2",
+    "node-resque": "^5.1.0",
     "system-timezone": "0.0.3",
     "uuid": "^3.0.0",
     "winston": "^3.0.0-rc1"
   },
   "devDependencies": {
-    "mocha": "^4.0.1",
+    "mocha": "^4.1.0",
     "chai": "^4.1.2",
-    "should": "^13.1.2",
+    "should": "^13.2.1",
     "intercept-stdout": "^0.1.2"
   },
   "scripts": {
